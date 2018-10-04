@@ -1,4 +1,17 @@
 from subprocess import Popen, PIPE, STDOUT
+import functools
+
+
+def output(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        r = f(*args, **kwargs)
+        if r is not None and len(r) > 0:
+            print r
+            return
+        print(f.__doc__)
+
+    return wrapper
 
 
 class CliApp:
@@ -21,30 +34,32 @@ class CliApp:
         p.communicate()
         return (results, p.returncode)
 
+    @output
     def print_helper(self, args):
         if len(args) > 0:
             cmd = args[0]
             if not self.validate_cmd(cmd):
-                print('do not make things up man. I cannot help you on {}'.format(cmd))
-                return
-            print('{} : {}'.format(cmd, getattr(self, 'do_{}'.format(cmd)).__doc__))
-            return
-        outputs = []
+                return 'do not make things up man. I cannot help you on {}'.format(cmd)
+            return '{} : {}'.format(cmd, getattr(self, 'do_{}'.format(cmd)).__doc__)
+        outputs = list()
         for f in dir(self):
             if f.startswith('do_'):
                 outputs.append(f[3:])
         if len(outputs) > 0:
-            print('man, you gotta choose from following: {}'.format(outputs))
-            return
+            return 'man, you gotta choose from following: {}'.format(outputs)
+        return 'no help contents available'
 
+    @output
     def print_valid_options(self):
+        outputs = list()
         if 'urls' in dir(self):
-            print('valid wheres: {}'.format(self.urls.keys()))
+            outputs.append('valid wheres: {}'.format(self.urls.keys()))
         dos = []
         for f in dir(self):
             if f.startswith('do_'):
                 dos.append(f[3:])
-        print('valid whats: {}'.format(dos))
+        outputs.append('valid whats: {}'.format(dos))
+        return '\n'.join(outputs)
 
     def validate_cmd(self, cmd):
         return 'do_%s' % (cmd) in dir(self)
@@ -59,7 +74,6 @@ class CliApp:
 
     def run(self, args):
         if len(args) < 1:
-            print('dude, you gotta tell me where and what. for example:')
             self.print_valid_options()
             return 1
         cmd = args[0]
@@ -68,7 +82,6 @@ class CliApp:
             return 0
         try:
             if not self.validate_cmd(cmd):
-                print('you are making things up dude. valid options are:')
                 self.print_valid_options()
                 return 1
             kwargs = self.parse_args(args[1:])
