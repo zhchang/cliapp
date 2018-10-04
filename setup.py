@@ -1,5 +1,5 @@
 from distutils.core import setup
-ver = '1.0.3'
+ver = '1.0.5'
 setup(
     name='cliapp',
     packages=['cliapp'],  # this must be the same as the name above

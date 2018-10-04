@@ -16,7 +16,7 @@ class CliApp:
                 break
             results.append(line)
             if not silent:
-                print line
+                print(line)
         p.communicate()
         return (results, p.returncode)
 
@@ -26,19 +26,19 @@ class CliApp:
             if f.startswith('do_'):
                 outputs.append(f[3:])
         if len(outputs) > 0:
-            print 'man, you gotta choose from following: %s' % (outputs)
+            print('man, you gotta choose from following: {}'.format(outputs))
         else:
-            print 'i cannot help you'
+            print('i cannot help you')
         pass
 
     def print_valid_options(self):
         if 'urls' in dir(self):
-            print 'valid wheres: %s' % (self.urls.keys())
+            print('valid wheres: {}'.format(self.urls.keys()))
         dos = []
         for f in dir(self):
             if f.startswith('do_'):
                 dos.append(f[3:])
-        print 'valid whats: %s' % (dos)
+        print('valid whats: {}'.format(dos))
 
     def validate_cmd(self, cmd):
         return 'do_%s' % (cmd) in dir(self)
@@ -53,7 +53,7 @@ class CliApp:
 
     def run(self, args):
         if len(args) < 1:
-            print 'dude, you gotta tell me where and what. for example:'
+            print('dude, you gotta tell me where and what. for example:')
             self.print_valid_options()
             return 1
         cmd = args[0]
@@ -62,11 +62,11 @@ class CliApp:
             return 0
         try:
             if not self.validate_cmd(cmd):
-                print 'you are making things up dude. valid options are:'
+                print('you are making things up dude. valid options are:')
                 self.print_valid_options()
                 return 1
             kwargs = self.parse_args(args[1:])
             getattr(self, 'do_%s' % (cmd))(**kwargs)
         except Exception as e:
-            print e
+            print(e)
             return 1
