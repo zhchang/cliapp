@@ -1,5 +1,6 @@
 from subprocess import Popen, PIPE, STDOUT
 
+
 class CliApp:
 
     def __init__(self):
@@ -7,7 +8,7 @@ class CliApp:
 
     def shell_run(self, cmd, **args):
         p = Popen(cmd, stdout=PIPE,
-                stderr=STDOUT, shell=True)
+                  stderr=STDOUT, shell=True)
         results = []
         silent = 'silent' in args and args['silent'] == True
         while True:
@@ -20,16 +21,21 @@ class CliApp:
         p.communicate()
         return (results, p.returncode)
 
-    def print_helper(self):
+    def print_helper(self, args):
+        if len(args) > 0:
+            cmd = args[0]
+            if not self.validate_cmd(cmd):
+                print('do not make things up man. I cannot help you on {}'.format(cmd))
+                return
+            print('{} : {}'.format(cmd, getattr(self, 'do_{}'.format(cmd)).__doc__))
+            return
         outputs = []
         for f in dir(self):
             if f.startswith('do_'):
                 outputs.append(f[3:])
         if len(outputs) > 0:
             print('man, you gotta choose from following: {}'.format(outputs))
-        else:
-            print('i cannot help you')
-        pass
+            return
 
     def print_valid_options(self):
         if 'urls' in dir(self):
@@ -58,7 +64,7 @@ class CliApp:
             return 1
         cmd = args[0]
         if cmd == 'help':
-            self.print_valid_options()
+            self.print_helper(args[1:])
             return 0
         try:
             if not self.validate_cmd(cmd):
